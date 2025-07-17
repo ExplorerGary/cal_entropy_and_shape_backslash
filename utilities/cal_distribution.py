@@ -60,11 +60,11 @@ def cal_distribution(pt_path:str,device=None,sample_enabled:bool=False,sample_si
         
         # find the closest value in r_gamma_table
         pos = torch.argmin(torch.abs(r_gamma - r_gamma_table))
-        shape = gamma_table[pos]
-        std = torch.sqrt(var / n)
-        n = torch.tensor(n)
-
-        mu = torch.mean(arr).to(device)
+        
+        shape = gamma_table[pos].item()
+        std = torch.sqrt(var / n).item()
+        n = torch.tensor(n).item()
+        mu = torch.mean(arr).to(device).item()
         
         distribution = {"name": name,"gamma": shape, "beta": std, "mu": mu}
         
@@ -102,10 +102,12 @@ def cal_distribution2(pt_path:str,device=None,sample_enabled:bool=False,sample_s
             
         r_gamma = (n * var / mean ** 2).to(device)
         pos = torch.argmin(torch.abs(r_gamma - r_gamma_table))
-        shape = gamma_table[pos]
-        std = torch.sqrt(var / n)
-        n = torch.tensor(n)
-        mu = torch.mean(torch.cat([v.flatten() for v in pt_dict.values()])).to(device)
+        
+        shape = gamma_table[pos].item()
+        std = torch.sqrt(var / n).item()
+        n = torch.tensor(n).item()
+        mu = torch.mean(torch.cat([v.flatten() for v in pt_dict.values()])).to(device).item()
+        
         distribution = {"name": name,"gamma": shape, "beta": std, "mu": mu}
 
     return distribution
