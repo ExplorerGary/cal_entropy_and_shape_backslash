@@ -1,0 +1,7 @@
+name,gamma,beta,mu
+R_1_E_0_S_9_B_79.pt,tensor(0.5000),"tensor(7.7843e-05, dtype=torch.float64)","tensor(5.4599e-08, dtype=torch.float64)"
+R_1_E_0_S_9_B_78.pt,tensor(0.7400),"tensor(2.5035e-05, dtype=torch.float64)","tensor(-1.0619e-10, dtype=torch.float64)"
+R_1_E_0_S_9_B_89.pt,tensor(0.4900),"tensor(6.3709e-05, dtype=torch.float64)","tensor(-2.3355e-08, dtype=torch.float64)"
+R_1_E_0_S_9_B_95.pt,tensor(0.2800),"tensor(3.5996e-05, dtype=torch.float64)","tensor(4.6407e-09, dtype=torch.float64)"
+R_1_E_0_S_9_B_8.pt,tensor(0.2600),"tensor(5.6195e-05, dtype=torch.float64)","tensor(2.5705e-09, dtype=torch.float64)"
+R_1_E_0_S_9_B_91.pt,tensor(0.5700),"tensor(3.4371e-05, dtype=torch.float64)","tensor(1.4872e-09, dtype=torch.float64)"
