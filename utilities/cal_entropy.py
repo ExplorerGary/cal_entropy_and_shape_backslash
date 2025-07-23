@@ -1,17 +1,93 @@
 # cal_entropy:
 """
-熵 (来自matlab的定义：https://ww2.mathworks.cn/help/images/ref/entropy.html)
-
 熵定义为 -sum(p.*log2(p))，其中 p 包含从 imhist 返回的归一化直方图计数。
 
-默认情况下，entropy 对逻辑数组使用两个 bin，对 uint8、uint16 或 double 数组使用 256 个 bin。为计算直方图计数，entropy 将除 logical 以外的任何数据类型转换为 uint8，以使像素值离散并直接对应于 bin 值。
+现已更改为对于bucket中每一个数据值进行运算
 
 """
 import numpy as np
 import torch
 import os
-from utilities import read_pt
-def cal_entropy(pt_path:str,bins:int=256) -> float:
+from utilities import read_pt, quantlization, scan_pt
+import time
+
+def cal_entropy(pt_path:str,fp64_enable:bool = False, pure_data_enable:bool = False, scaling = int(1e6)) -> float:
+    """
+    计算熵
+    :param pt_path: 输入pt文件的路径
+    :fp64_enable: 启用fp64
+    :param fp64_enable: bool - 是否启用64位浮点数计算模式(默认False)
+    :param pure_data_enable: bool - 是否处理纯数据模式(默认False)
+    :param scaling: int - 数据缩放因子(默认1e6)，用于调整数据范围以便计算
+    
+    :return: dict: 名称和对应的熵值(单位为bit)
+    """
+    try:
+        name = os.path.basename(pt_path)
+        pt_array = read_pt(pt_path)
+        quantized = pt_array if pure_data_enable else quantlization(pt_array=pt_array,
+                                                                    scaling = int(1e6), 
+                                                                    fp64_enable = fp64_enable,
+                                                                    debug = True)
+        # 按照量化后的每一个数据值进行计算
+        bins = len(np.unique(quantized))
+        
+        
+        ### debugging info ###
+        print(f"how long the bucket is = {len(quantized)}\nhow many bin(unique) nums = {bins}")
+        ######################
+        
+        
+        hist, _ = np.histogram(pt_array, bins=bins, density=False)
+        prob = hist / np.sum(hist)
+        prob = prob[prob > 0]
+        entropy = -np.sum(prob * np.log2(prob))
+        
+        return {
+            "name":name, 
+            "entropy":entropy
+            }
+    except Exception as e:
+        print(e)
+        return {
+            "name":None, 
+            "entropy":None
+            }
+
+def local_test():
+    """
+    本地测试函数
+    """
+    base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files\\"
+    avail_pt = scan_pt(base_dir=base_dir)
+    print(f"found: {len(avail_pt)}")
+    for pt_path in avail_pt:
+        start = time.time()
+        result = cal_entropy(pt_path,fp64_enable=True,pure_data_enable=True,scaling=int(1e8))
+        end = time.time()
+        print(f"Entropy of {result['name']}: {result['entropy']}\n it takes: {end - start}\n\n")
+    
+    
+# local_test()
+
+
+# def quantization(pt_array:np.ndarray,scaling = 2 ** 8) -> np.ndarray:
+#     """
+#     对输入的pt_array进行量化处理：
+#     先将pt_array乘以2的8次方，四舍五入后再除以2的8次方，返回量化后的数组。
+#     :param pt_array: 输入的numpy数组
+#     :param scaling: 量化的缩放因子，默认为2的8次方
+#     :return: 量化后的numpy数组
+#     """
+#     if not isinstance(pt_array, np.ndarray):
+#         raise TypeError("pt_array must be a numpy array")
+#     quantized = np.round(pt_array * scaling) / scaling
+#     return quantized
+    
+#     pass
+
+
+def cal_entropy_bucket(pt_path:str,bins:int=256) -> float:
     """
     计算熵
     :param pt_path: 输入pt文件的路径
@@ -61,20 +137,3 @@ def cal_entropy_ggd(pt_path:str,gemma,mu) -> float:
             "name":None, 
             "entorpy":None
             }
-
-
-
-
-def local_test():
-    """
-    本地测试函数
-    """
-    pt_path = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files\\R_1_E_0_S_9_B_8.pt"  # 替换为实际的.pt文件路径
-    result = cal_entropy(pt_path)
-    print(f"Entropy of {result['name']}: {result['entorpy']}")
-    
-    
-    
-# local_test()
-
-
