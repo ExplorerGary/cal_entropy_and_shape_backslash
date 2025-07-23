@@ -12,7 +12,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 
-from utilities.cal_entropy import cal_entropy
+from utilities.cal_percentile import cal_percentile
 from utilities.utilities import read_pt_from_csv,scan_pt
 from utilities.ErrorLogger import ErrorLogger 
 
@@ -93,7 +93,7 @@ def main(pure_data_enable=True):
     base_dir = os.path.dirname(__file__)
     output_path = os.path.join(base_dir, "data_obtained")
     os.makedirs(output_path, exist_ok=True)
-    BASE_DIR = "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/" if torch.cuda.is_available() else "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files" 
+    BASE_DIR = "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/"
     Logger = ErrorLogger()
 
     # 系统信息
@@ -107,8 +107,8 @@ def main(pure_data_enable=True):
     suffix = "a" if pure_data_enable else "b"
     cache_file = os.path.join(output_path, f"zzz_avail_pt_{suffix}.csv")
     results_file = os.path.join(output_path,f"001_ENTROPY_RESULTS_PROCESSPOOL_{suffix}.csv")
-    fieldnames = ["name", "entropy"]
-    chunk_size = 250
+    fieldnames = ["name", "90th percentile", "95th percentile", "100th percentile"]
+    chunk_size = 500
 
     processed_files = set()
     if os.path.exists(results_file):
@@ -150,7 +150,7 @@ def main(pure_data_enable=True):
                 with ProcessPoolExecutor(max_workers=max_workers) as executor:
                     futures = {
                         executor.submit(
-                            cal_entropy,
+                            cal_percentile,
                             os.path.join(BASE_DIR, path),
                             fp64_enable=True,
                             pure_data_enable=pure_data_enable,
