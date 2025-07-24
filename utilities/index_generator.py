@@ -140,7 +140,7 @@ def local_test():
     bucket_num: int = int(1e6)  # 防止爆内存
     step: float = 0.25
     tail_start: float = 0.25
-    save_name = "gamma_table.pt"
+    save_name = "ggd_index_table.pt"
 
     # === 生成 index 表 ===
     index_path = index_generator(
