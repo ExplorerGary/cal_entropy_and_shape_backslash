@@ -29,7 +29,7 @@ def cal_entropy(pt_path:str,
     """
     try:
         name = os.path.basename(pt_path)
-        pt_array = torch.abs(read_pt(pt_path)) if abs_enabled else read_pt(pt_path)
+        pt_array = np.abs(read_pt(pt_path)) if abs_enabled else read_pt(pt_path)
         quantized = pt_array if pure_data_enable else quantlization(pt_array=pt_array,
                                                                     scaling = scaling, 
                                                                     fp64_enable = fp64_enable,
