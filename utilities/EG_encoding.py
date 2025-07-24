@@ -1,6 +1,8 @@
 # EG encoding: 
-
-from .ExpGolombCode import ExpGolombCode as EGCode
+try:
+    from ExpGolombCode import ExpGolombCode as EGCode
+except:
+    from .ExpGolombCode import ExpGolombCode as EGCode
 import os
 import torch
 import numpy as np
