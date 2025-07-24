@@ -88,12 +88,17 @@ from utilities.ErrorLogger import ErrorLogger
 #     print(f"ALL FILE PRPROCESSED, CHECK\n{csv_path}\nTO SEE THE RESULT")
     
 
-def main(pure_data_enable=True):
+def main(pure_data_enable=True, abs_enabled = False, scale = int(1e6)):
+    info = f'''
+pure data enabled? -- {pure_data_enable}
+abs enabled? -- {abs_enabled}
+scale -- {scale}
+'''
     # 初始化路径
     base_dir = os.path.dirname(__file__)
     output_path = os.path.join(base_dir, "data_obtained")
     os.makedirs(output_path, exist_ok=True)
-    BASE_DIR = "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/"
+    BASE_DIR = "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/" if torch.cuda.is_available() else "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files" 
     Logger = ErrorLogger()
 
     # 系统信息
@@ -104,7 +109,13 @@ def main(pure_data_enable=True):
     print("Running in local test mode" if not torch.cuda.is_available() else "Running on HPC")
 
     # 文件配置
-    suffix = "a" if pure_data_enable else "b"
+    
+    if pure_data_enable:
+        suffix = "a"
+    elif int(scale) == int(1e6):
+        suffix = "b"
+    else:
+        suffix = "c"
     cache_file = os.path.join(output_path, f"zzz_avail_pt_{suffix}.csv")
     results_file = os.path.join(output_path,f"001_ENTROPY_RESULTS_PROCESSPOOL_{suffix}.csv")
     fieldnames = ["name", "entropy"]
@@ -154,7 +165,8 @@ def main(pure_data_enable=True):
                             os.path.join(BASE_DIR, path),
                             fp64_enable=True,
                             pure_data_enable=pure_data_enable,
-                            scaling=int(1e6)
+                            scaling=scale,
+                            abs_enabled = abs_enabled,
                         ): path
                         for path in batch
                     }
@@ -179,18 +191,23 @@ def main(pure_data_enable=True):
 
 
 if __name__ == "__main__":
-    result_file_a = main(pure_data_enable=True)
+    result_file_a = main(pure_data_enable=True, abs_enabled=True)
     if result_file_a:
         print(f"\n[001a] PURE_DATA ENABLED:\nCheck results in {result_file_a}")
     else:
         print("[001a] Failed — check logs.")
 
-    result_file_b = main(pure_data_enable=False)
+    result_file_b = main(pure_data_enable=False,abs_enabled=True)
     if result_file_b:
         print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_b}")
     else:
         print("[001b] Failed — check logs.")
-
+        
+    result_file_c = main(pure_data_enable=False,abs_enabled=True, scale = int(1e4))
+    if result_file_c:
+        print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_c}")
+    else:
+        print("[001b] Failed — check logs.")
 
 
 
