@@ -149,6 +149,7 @@ def local_test(eval:bool = False):
 
     # === 生成 index 表 ===
     if not eval:
+        print("generating...")
         index_path = index_generator(
             gemma=gemma,
             beta=beta,
@@ -167,6 +168,7 @@ def local_test(eval:bool = False):
     print(f"Index table shape: {stuff.shape}")
     print(f"前10个桶: {stuff[:10]}")
     print(f"最后10个桶: {stuff[-10:]}")
+
 
     # === 创建 GGD 分布对象 ===
     ggd = gennorm(beta = gemma, loc=mu, scale=beta)
@@ -215,7 +217,10 @@ def local_test(eval:bool = False):
 
     plt.tight_layout()
     plt.suptitle("GGD Bucket Mapping Summary", fontsize=16, y=1.03)
-    plt.show()
+    plt.savefig(os.path.join(base_dir,"..","data_obtained","index_table.png"))
+    
+    if not torch.cuda.is_available():
+        plt.show()
 
 
 eval = not torch.cuda.is_available()
