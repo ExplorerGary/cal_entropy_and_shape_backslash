@@ -88,7 +88,7 @@ from utilities.ErrorLogger import ErrorLogger
 #     print(f"ALL FILE PRPROCESSED, CHECK\n{csv_path}\nTO SEE THE RESULT")
     
 
-def main(pure_data_enable=True):
+def main(pure_data_enable=True, abs_enabled = False):
     # 初始化路径
     base_dir = os.path.dirname(__file__)
     output_path = os.path.join(base_dir, "data_obtained")
@@ -154,7 +154,8 @@ def main(pure_data_enable=True):
                             os.path.join(BASE_DIR, path),
                             fp64_enable=True,
                             pure_data_enable=pure_data_enable,
-                            scaling=int(1e6)
+                            scaling=int(1e6),
+                            abs_enabled = abs_enabled,
                         ): path
                         for path in batch
                     }
@@ -179,13 +180,13 @@ def main(pure_data_enable=True):
 
 
 if __name__ == "__main__":
-    result_file_a = main(pure_data_enable=True)
+    result_file_a = main(pure_data_enable=True, abs_enabled=True)
     if result_file_a:
         print(f"\n[001a] PURE_DATA ENABLED:\nCheck results in {result_file_a}")
     else:
         print("[001a] Failed — check logs.")
 
-    result_file_b = main(pure_data_enable=False)
+    result_file_b = main(pure_data_enable=False,abs_enabled=True)
     if result_file_b:
         print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_b}")
     else:

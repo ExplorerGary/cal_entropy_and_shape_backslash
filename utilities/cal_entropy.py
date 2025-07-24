@@ -11,7 +11,11 @@ import os
 from .utilities import read_pt, quantlization, scan_pt
 import time
 
-def cal_entropy(pt_path:str,fp64_enable:bool = False, pure_data_enable:bool = False, scaling = int(1e6)) -> float:
+def cal_entropy(pt_path:str,
+                fp64_enable:bool = False, 
+                pure_data_enable:bool = False, 
+                scaling = int(1e6),
+                abs_enabled:bool = False) -> float:
     """
     计算熵
     :param pt_path: 输入pt文件的路径
@@ -19,14 +23,15 @@ def cal_entropy(pt_path:str,fp64_enable:bool = False, pure_data_enable:bool = Fa
     :param fp64_enable: bool - 是否启用64位浮点数计算模式(默认False)
     :param pure_data_enable: bool - 是否处理纯数据模式(默认False)
     :param scaling: int - 数据缩放因子(默认1e6)，用于调整数据范围以便计算
+    :param abs_enabled: bool - 判断是否需要使用torch.abs返回
     
     :return: dict: 名称和对应的熵值(单位为bit)
     """
     try:
         name = os.path.basename(pt_path)
-        pt_array = read_pt(pt_path)
+        pt_array = torch.abs(read_pt(pt_path)) if abs_enabled else read_pt(pt_path)
         quantized = pt_array if pure_data_enable else quantlization(pt_array=pt_array,
-                                                                    scaling = int(1e6), 
+                                                                    scaling = scaling, 
                                                                     fp64_enable = fp64_enable,
                                                                     debug = True)
         # 按照(量化)后的每一个数据值进行计算

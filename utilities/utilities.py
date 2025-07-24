@@ -77,7 +77,7 @@ def quantlization_fuct(pt_array:np.ndarray,scaling:int = 2**8, fp64_enable:bool 
         print(pt_array.dtype)
         print(pt_array)
     quantized = np.round(pt_array * scaling) / scaling
-    print(quantized)
+    # print(quantized)
     return quantized
 
 def quantlization(pt_array:np.ndarray,scaling:int = 2**2,fp64_enable:bool = False,debug:bool = False) -> np.ndarray:

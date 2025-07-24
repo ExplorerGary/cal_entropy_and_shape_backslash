@@ -85,7 +85,9 @@ def index_generator(
     :return: 保存路径
     """
     os.makedirs(save_dir, exist_ok=True)
-
+    zero = np.array([0.0], dtype=np.float32) # 创建0
+    
+    
     # 1. 创建 GGD 对象
     ggd = gennorm(beta = gemma, loc=mu, scale=beta)
 
@@ -107,7 +109,7 @@ def index_generator(
         fine_bucket_centers.append(val)
 
     fine_bucket_centers = np.array(fine_bucket_centers, dtype=np.float32)
-
+    fine_buckets = np.concatenate([zero, fine_bucket_centers])
     # 4️. 构建粗长尾部分（均匀步长从 tail_start 到 end_point）
     print("📌 [Step 4] 构建粗长尾区间...")
     tail_values = np.arange(tail_start, end_point + step, step, dtype=np.float32)
@@ -115,7 +117,7 @@ def index_generator(
     
     # 5️. 合并两个部分
     print("📌 [Step 5] 合并并裁剪...")
-    all_buckets = np.concatenate([fine_bucket_centers, tail_values])
+    all_buckets = np.concatenate([fine_buckets, tail_values])
     all_buckets = np.clip(all_buckets, a_min=None, a_max=end_point)
 
     # 6️. 保存为 .pt
@@ -165,6 +167,7 @@ def local_test(eval:bool = False):
     index_path = os.path.join(storge_path,save_name)
     # === 加载 index 表 ===
     stuff = torch.load(index_path, map_location="cpu").numpy()
+    print(f"Index table dtype: {stuff.dtype}")
     print(f"Index table shape: {stuff.shape}")
     print(f"前10个桶: {stuff[:10]}")
     print(f"最后10个桶: {stuff[-10:]}")
@@ -226,35 +229,22 @@ def local_test(eval:bool = False):
 eval = not torch.cuda.is_available()
 local_test(eval = eval)
 
-# # from scipy.stats import norm
-
-# # # 计算标准正态分布下 P(X <= 1.0)
-# # print(norm.cdf(5))  # 输出约为 0.999999999999
-# # print(norm.cdf(10)) # 直接报1.0
-# # print(norm.cdf(0.0))  # 输出约为 0.5000
-
-# # 1. 构造 GGD
-# ggd = gennorm(beta=1.0, loc=0.0, scale=0.01)
-
-# # 2. 选择一个比较安全的右尾概率（例如 0.9999）
-# target_cdf_tail = 0.9999999999
-# print(ggd.cdf(0.22333))
-# # 3. 用 PPF 反推出这个概率对应的值
-# endpoint = ggd.ppf(target_cdf_tail)
-# print(f"合理的 endpoint（包含99.99%概率质量）是：{endpoint:.5f}")
+# fp16介绍： https://zhuanlan.zhihu.com/p/657886517
+# 输出：
 
 
-# local_test_result = '''
+# EVALING?                ---True
 # Index table shape: (1004000,)
-# 前10个桶: [-0.1381551  -0.12716898 -0.12206072 -0.118696   -0.11618286 -0.11417615
-#  -0.11250561 -0.1110746  -0.10982297 -0.10871071]
+# 前10个桶: [5.0000013e-09 1.5000012e-08 2.5000030e-08 3.5000060e-08 4.5000100e-08
+#  5.5000150e-08 6.5000208e-08 7.5000280e-08 8.5000359e-08 9.5000452e-08]
 # 最后10个桶: [ 997.75  998.    998.25  998.5   998.75  999.    999.25  999.5   999.75
 #  1000.  ]
 
-# '''
+'''
+也就是说，fp16的精度大约在5e-9这个数量级，而我们目前的实践可以做到精细模式下的步长为1e-8。也就是他的两倍。
+说明我们实现的精度很高，接下来，只要加一个0，然后做好mapping就可以投入使用了
+此外，再看看shape parameter的分布，选取一个不错的值就行。
 
-# to_gpt = '''
-# 后十个同的划分很令人满意，但是为什么前十个桶是从负数开始的？这是期待的行为吗？
-# 如果我希望精细划桶从0开始呢？
+目前已知：gemma取1.0是符合bucket观测数据的。那么beta呢？
 
-# '''
+'''
