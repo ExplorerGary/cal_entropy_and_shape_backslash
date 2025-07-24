@@ -63,6 +63,7 @@ def index_generator(
     bucket_num: int = int(1e8),  # 精细部分桶数（可调），但GPT建议使用1e6防止爆内存
     step: float = 0.25,
     tail_start: float = 0.25,
+    symmetric: bool = True,
     save_dir: str = storge_path,
     save_name: str = "ggd_index_table.pt"
 ) -> str:
@@ -78,6 +79,7 @@ def index_generator(
     :param bucket_num: 精细部分分桶数量（太大可能爆内存）
     :param step: 长尾部分步长
     :param tail_start: 长尾起点，建议略大于精细区最大值
+    :param symmetric: 控制是否从0开始生成index，默认开启因为我们有一位signbit表示正负
     :param save_dir: 保存路径
     :param save_name: 保存文件名
     :return: 保存路径
@@ -93,7 +95,8 @@ def index_generator(
     print(f"✅ 精细分桶最大值 ≈ {fine_max_value:.6f}")
 
     # 3️. 构建 CDF 等分区间
-    fine_cdf = np.linspace(0, ppf_end_point, bucket_num + 1)
+    begin = 0.5 if symmetric else 0
+    fine_cdf = np.linspace(begin, ppf_end_point, bucket_num + 1)
     fine_bucket_centers = []
     print("📌 [Step 3] 正在生成精细区间桶中心（共 {} 个）...".format(bucket_num))
     for i in tqdm(range(bucket_num), desc="🔧 Building Fine Buckets... "):
@@ -125,7 +128,8 @@ def index_generator(
     print(f"[INFO] Total number of buckets: {len(index_table)}")
     return save_path
 
-def local_test():
+def local_test(eval:bool = False):
+    print(f"EVALING?\t\t---{eval}")
     import matplotlib.pyplot as plt
     import torch
     import numpy as np
@@ -139,22 +143,25 @@ def local_test():
     end_point: float = 1e3
     bucket_num: int = int(1e6)  # 防止爆内存
     step: float = 0.25
+    symmetric = True # 启动从0开始生成index的逻辑
     tail_start: float = 0.25
     save_name = "ggd_index_table.pt"
 
     # === 生成 index 表 ===
-    index_path = index_generator(
-        gemma=gemma,
-        beta=beta,
-        mu=mu,
-        ppf_end_point=ppf_end_point,
-        end_point=end_point,
-        bucket_num=bucket_num,
-        step=step,
-        tail_start=tail_start,
-        save_name=save_name,
-    )
-
+    if not eval:
+        index_path = index_generator(
+            gemma=gemma,
+            beta=beta,
+            mu=mu,
+            ppf_end_point=ppf_end_point,
+            end_point=end_point,
+            bucket_num=bucket_num,
+            step=step,
+            symmetric=symmetric,
+            tail_start=tail_start,
+            save_name=save_name,
+        )
+    index_path = os.path.join(storge_path,save_name)
     # === 加载 index 表 ===
     stuff = torch.load(index_path, map_location="cpu").numpy()
     print(f"Index table shape: {stuff.shape}")
@@ -210,7 +217,9 @@ def local_test():
     plt.suptitle("GGD Bucket Mapping Summary", fontsize=16, y=1.03)
     plt.show()
 
-local_test()
+
+eval = not torch.cuda.is_available()
+local_test(eval = eval)
 
 # # from scipy.stats import norm
 
@@ -228,3 +237,19 @@ local_test()
 # # 3. 用 PPF 反推出这个概率对应的值
 # endpoint = ggd.ppf(target_cdf_tail)
 # print(f"合理的 endpoint（包含99.99%概率质量）是：{endpoint:.5f}")
+
+
+# local_test_result = '''
+# Index table shape: (1004000,)
+# 前10个桶: [-0.1381551  -0.12716898 -0.12206072 -0.118696   -0.11618286 -0.11417615
+#  -0.11250561 -0.1110746  -0.10982297 -0.10871071]
+# 最后10个桶: [ 997.75  998.    998.25  998.5   998.75  999.    999.25  999.5   999.75
+#  1000.  ]
+
+# '''
+
+# to_gpt = '''
+# 后十个同的划分很令人满意，但是为什么前十个桶是从负数开始的？这是期待的行为吗？
+# 如果我希望精细划桶从0开始呢？
+
+# '''
