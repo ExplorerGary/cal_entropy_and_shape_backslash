@@ -11,8 +11,10 @@ import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-
-from utilities.cal_entropy import cal_entropy
+try:
+    from utilities.cal_entropy import cal_entropy
+except:
+    from .utilities.cal_entropy import cal_entropy
 from utilities.utilities import read_pt_from_csv,scan_pt
 from utilities.ErrorLogger import ErrorLogger 
 
@@ -111,11 +113,13 @@ scale -- {scale}
     # 文件配置
     
     if pure_data_enable:
-        suffix = "a"
+        suffix = "a1" if not abs_enabled else "a2"
     elif int(scale) == int(1e6):
-        suffix = "b"
+        suffix = "b" if not abs_enabled else "b2"
+    elif int(scale) == int(1e5):
+        suffix = "c" if not abs_enabled else "c2"
     else:
-        suffix = "c"
+        suffix = "d" if not abs_enabled else "d2"
     cache_file = os.path.join(output_path, f"zzz_avail_pt_{suffix}.csv")
     results_file = os.path.join(output_path,f"001_ENTROPY_RESULTS_PROCESSPOOL_{suffix}.csv")
     fieldnames = ["name", "entropy"]
@@ -208,7 +212,12 @@ if __name__ == "__main__":
         print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_c}")
     else:
         print("[001b] Failed — check logs.")
-
+        
+    result_file_d = main(pure_data_enable=False,abs_enabled=True, scale = int(1e5))
+    if result_file_d:
+        print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_d}")
+    else:
+        print("[001b] Failed — check logs.")
 
 
 # # run

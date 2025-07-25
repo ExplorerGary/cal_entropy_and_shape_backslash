@@ -8,7 +8,10 @@
 import numpy as np
 import torch
 import os
-from .utilities import read_pt, quantlization, scan_pt
+try:    
+    from .utilities import read_pt, quantlization, scan_pt
+except:
+    from utilities import read_pt, quantlization, scan_pt
 import time
 
 def cal_entropy(pt_path:str,
@@ -33,7 +36,7 @@ def cal_entropy(pt_path:str,
         quantized = pt_array if pure_data_enable else quantlization(pt_array=pt_array,
                                                                     scaling = scaling, 
                                                                     fp64_enable = fp64_enable,
-                                                                    debug = True)
+                                                                    debug = False)
         # 按照(量化)后的每一个数据值进行计算
 
         # 统计每个唯一值的出现次数
@@ -69,10 +72,13 @@ def local_test():
     avail_pt = scan_pt(base_dir=base_dir)
     print(f"found: {len(avail_pt)}")
     for pt_path in avail_pt:
-        start = time.time()
-        result = cal_entropy(pt_path,fp64_enable=True,pure_data_enable=True,scaling=int(1e8))
-        end = time.time()
-        print(f"Entropy of {result['name']}: {result['entropy']}\n it takes: {end - start}\n\n")
+        
+        sacles = [int(1e6),int(1e5),int(1e4)]
+        for scale in sacles:
+            start = time.time()
+            result = cal_entropy(pt_path,fp64_enable=False,pure_data_enable=False,scaling=scale)
+            end = time.time()
+            print(f"Entropy of {result['name']}: {result['entropy']}\n it takes: {end - start}\nscaling = {scale}\n\n")
     
     
 # local_test()

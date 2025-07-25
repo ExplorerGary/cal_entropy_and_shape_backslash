@@ -10,8 +10,14 @@ data_dir = os.path.join(base_dir, "data_obtained")
 
 # 要读取的 CSV 文件名
 entropy_files = [
-    "001_ENTROPY_RESULTS_PROCESSPOOL_a.csv",
-    "001_ENTROPY_RESULTS_PROCESSPOOL_b.csv"
+    "001_ENTROPY_RESULTS_PROCESSPOOL_a1.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_b1.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_c1.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_d1.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_a2.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_b2.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_c2.csv",
+    "001_ENTROPY_RESULTS_PROCESSPOOL_d2.csv",
 ]
 col_dict = {
     1:entropy_files
@@ -67,7 +73,12 @@ zzz.csv: 经过扫盘得出的.pt文件列表，以csv格式存储，到时候�
     THING_TO_WORK_ON = int(input("输入对应数字来执行分析\n\n>>>\t"))
     csv_files = col_dict[THING_TO_WORK_ON]
     title = col_name_dict[THING_TO_WORK_ON]
-    for csv_file in csv_files:
-        df = read_csv(csv_file)
-        hist(df, bins=256, title=title)
+    if THING_TO_WORK_ON == 1:
+        for csv_file in csv_files[:3]:
+            df = read_csv(csv_file)
+            hist(df, bins=256, title=title)
+        
+        for csv_file in csv_files[3:]:
+            df = read_csv(csv_file)
+            hist(df, bins=256, title=str(title)+"_abs_enabled")
 
