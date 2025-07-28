@@ -58,7 +58,7 @@ def to_int(pt: np.ndarray, scale: float = 1e6) -> np.ndarray:
         print(e)
         return None
     
-def quantlization_fuct(pt_array:np.ndarray,scaling:int = 2**8, fp64_enable:bool = False, debug:bool = False) -> np.ndarray:
+def quantlization_fuct_np(pt_array:np.ndarray,scaling:int = 2**8, fp64_enable:bool = False, debug:bool = False) -> np.ndarray:
     """
     对输入的pt_array进行量化处理：
     先将pt_array乘以2的8次方，四舍五入后再除以2的8次方，返回量化后的数组。
@@ -80,14 +80,47 @@ def quantlization_fuct(pt_array:np.ndarray,scaling:int = 2**8, fp64_enable:bool 
     # print(quantized)
     return quantized
 
-def quantlization(pt_array:np.ndarray,scaling:int = 2**2,fp64_enable:bool = False,debug:bool = False) -> np.ndarray:
+def quantlization_np(pt_array:np.ndarray,scaling:int = 2**2,fp64_enable:bool = False,debug:bool = False) -> np.ndarray:
     try:
-        return quantlization_fuct(pt_array=pt_array,scaling=scaling,fp64_enable = fp64_enable,debug=debug)
+        return quantlization_fuct_np(pt_array=pt_array,scaling=scaling,fp64_enable = fp64_enable,debug=debug)
     except Exception as e:
         print(e)
         return None
 
+def quantlization_fuct_pt(pt_array:torch.Tensor,scaling:int = 2**8, fp64_enable:bool = False, debug:bool = False) -> torch.Tensor:
+    """
+    对输入的pt_array进行量化处理：
+    先将pt_array乘以2的8次方，四舍五入后再除以2的8次方，返回量化后的数组。
+    :param pt_array: 输入的numpy数组
+    :param scaling: 量化的缩放因子，默认为2的8次方
+    :return: 量化后的numpy数组
+    """
+    if not isinstance(pt_array, torch.Tensor):
+        return TypeError("pt_array must be a torch.Tensor")
+    if fp64_enable and debug:
+        print("fp64_enable",fp64_enable)
+    if debug:
+        print(pt_array.dtype)
+        print(pt_array)
     
+    
+    working_tensor = pt_array.to(dtype=torch.float64) if fp64_enable else pt_array
+    quantized = torch.round(working_tensor * scaling) / scaling
+    
+    
+    if debug:
+        print(quantized)
+    return quantized
+
+def quantlization_pt(pt_array:torch.Tensor,scaling:int = 2**2,fp64_enable:bool = False,debug:bool = False) -> torch.Tensor:
+    try:
+        return quantlization_fuct_pt(pt_array=pt_array,scaling=scaling,fp64_enable = fp64_enable,debug=debug)
+    except Exception as e:
+        print(e)
+        return None
+
+
+
 def scan_csv(base_dir:str):
     '''
     扫描特定盘下所有的.pt文件，然后返回一个整理好的绝对路径列表

@@ -122,12 +122,24 @@ def index_generator(
 
     # 6️. 保存为 .pt
     print("📌 [Step 6] 保存 index table...")
-    index_table = torch.tensor(all_buckets)
+    # index2value是每一个bucket对应的值
+    index2value = torch.tensor(all_buckets)
+    
+    # boundaries是我们日后bucketnize需要用到的tensor
+    boundaries_mid = (index2value[1:] + index2value[:-1]) / 2
+    boundaries = torch.cat([
+        torch.tensor([float('-inf')]),  # 从0开始，最小边界
+        boundaries_mid,
+        torch.tensor([float('inf')])  # 最大边界
+    ])
     save_path = os.path.join(save_dir, save_name)
-    torch.save(index_table, save_path)
+    torch.save({
+        "index2value": index2value,
+        "boundaries": boundaries
+    }, save_path)
 
     print(f"[SUCCESS] Index table saved to: {save_path}")
-    print(f"[INFO] Total number of buckets: {len(index_table)}")
+    print(f"[INFO] Total number of buckets: {len(index2value)}")
     return save_path
 
 def local_test(eval:bool = False):
@@ -164,15 +176,25 @@ def local_test(eval:bool = False):
             tail_start=tail_start,
             save_name=save_name,
         )
-    index_path = os.path.join(storge_path,save_name)
+    table_path = os.path.join(storge_path,save_name)
+    stuff = torch.load(table_path,map_location="cpu")
+    index2value = stuff["index2value"]
+    boundaries = stuff["boundaries"]
+    
     # === 加载 index 表 ===
-    stuff = torch.load(index_path, map_location="cpu").numpy()
-    print(f"Index table dtype: {stuff.dtype}")
-    print(f"Index table shape: {stuff.shape}")
-    print(f"前10个桶: {stuff[:10]}")
-    print(f"最后10个桶: {stuff[-10:]}")
+    print("\n📐 === index2value信息 ===")
+    print(f"Index table dtype: {index2value.dtype}")
+    print(f"Index table shape: {index2value.shape}")
+    print(f"前10个桶: {index2value[:10]}")
+    print(f"最后10个桶: {index2value[-10:]}")
 
-
+    print("\n📐 === Boundaries 信息 ===")
+    print(f"Boundaries table dtype: {boundaries.dtype}")
+    print(f"Boundaries shape: {boundaries.shape}")
+    print(f"前10个边界值: {boundaries[:10].numpy()}")
+    print(f"最后10个边界值: {boundaries[-10:].numpy()}")
+    
+    
     # === 创建 GGD 分布对象 ===
     ggd = gennorm(beta = gemma, loc=mu, scale=beta)
 
@@ -211,7 +233,7 @@ def local_test(eval:bool = False):
 
     # 桶分布
     plt.subplot(2, 2, 4)
-    plt.plot(stuff, label="Index bucket values", color="red")
+    plt.plot(index2value, label="Index bucket values", color="red")
     plt.yscale("log")
     plt.title("Bucket Center Values (log scale)")
     plt.grid(True)
