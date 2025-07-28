@@ -21,6 +21,9 @@ index2value = table["index2value"].to("cpu") # it's a dict.
 boundaries = table["boundaries"].to("cpu")
 print("table loaded...")
 
+
+
+
 def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
     '''
     读入一个原始的tensor
@@ -29,7 +32,7 @@ def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
         返回带符号的index供改修过了的EG encoding使用
     
     '''
-    
+    global boundaries
     
     if pt_array is None:
         try:

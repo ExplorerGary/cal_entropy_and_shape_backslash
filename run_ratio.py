@@ -25,6 +25,7 @@ suffix_dict = {int(1e6):"b",
                int(1e4):"d",}
 
 def main(scale = int(1e6)):
+    
     info = f'''scale -- {scale}'''
     # 初始化路径
     base_dir = os.path.dirname(__file__)
@@ -60,7 +61,7 @@ def main(scale = int(1e6)):
 
     
     
-    chunk_size = 250
+    chunk_size = 50
 
     processed_files = set()
     if os.path.exists(results_file):
