@@ -3,10 +3,10 @@ import traceback
 import os
 
 class ErrorLogger():
-    def __init__(self):
+    def __init__(self,log_file = None):
         base_dir = os.path.dirname(__file__)
         error_log_path = os.path.abspath(os.path.join(base_dir, "..", "data_obtained", "error_logger.txt"))
-        self.log_file = error_log_path
+        self.log_file = error_log_path if log_file == None else log_file
         
         
         logging.basicConfig(

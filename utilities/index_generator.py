@@ -49,10 +49,16 @@ import torch
 from tqdm import tqdm
 from scipy.stats import gennorm
 import matplotlib.pyplot as plt
-
+try:
+    from ErrorLogger import ErrorLogger
+except:
+    from .ErrorLogger import ErrorLogger
 base_dir = os.path.dirname(__file__)
 storge_path = os.path.join(base_dir,"..","data_to_use")
-
+logger = ErrorLogger(
+    log_file = os.path.join(base_dir, "..", "data_to_use", "ggd_index_table_info.txt"),
+    
+)
 
 def index_generator(
     gemma: float,
@@ -193,8 +199,19 @@ def local_test(eval:bool = False):
     print(f"Boundaries shape: {boundaries.shape}")
     print(f"前10个边界值: {boundaries[:10].numpy()}")
     print(f"最后10个边界值: {boundaries[-10:].numpy()}")
-    
-    
+
+    info = f"""
+\n📐 === index2value信息 ===
+Index table dtype: {index2value.dtype}
+Index table shape: {index2value.shape}
+前10个桶: {index2value[:10]}
+最后10个桶: {index2value[-10:]}
+\n📐 === Boundaries 信息 ===
+Boundaries table dtype: {boundaries.dtype}
+前15个边界值: {boundaries[:15].numpy()}
+最后15个边界值: {boundaries[-15:].numpy()}
+"""
+    logger.record(info)
     # === 创建 GGD 分布对象 ===
     ggd = gennorm(beta = gemma, loc=mu, scale=beta)
 
