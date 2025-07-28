@@ -15,7 +15,7 @@ class ExpGolombEncoding(EGCode):
     
     def encode(self, nums, debug:bool = False):
         codes = [None] * len(nums)
-        if not debug:
+        if debug:
             for i, num in enumerate(tqdm(nums, desc="Processing")):
                 # 加入signbit逻辑：
                 sign_bit = "0" if num>=0 else "1"

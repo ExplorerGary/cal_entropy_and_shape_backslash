@@ -62,7 +62,11 @@ def cal_ratio(pt_path,
     signed_index = preprocess(pt_path = None,
                               pt_array=quantized) # torch.Tensor
     
+    
     if debug:
+        print(signed_index)
+        print(signed_index.dtype)
+        print(signed_index.size())
         print("encoding...")
     codes = EG.encode(signed_index,debug = debug) # -> list[str]
     
