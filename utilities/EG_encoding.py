@@ -14,6 +14,7 @@ class ExpGolombEncoding(EGCode):
         super().__init__(k)
     
     def encode(self, nums, debug:bool = False):  # 改进为tolist实现，但是还是有进一步提升的空间
+        
         codes = [None] * len(nums)
         nums = nums.tolist() if isinstance(nums, torch.Tensor) else nums
         iterator = tqdm(nums, desc="Processing") if debug else nums

@@ -49,8 +49,9 @@ def cal_ratio(pt_path,
     pt_array:torch.Tensor = read_pt_tensor(pt_path=pt_path)
     the_type = pt_array.dtype
     bit_per_entry = bit_per_entry_dict[the_type]
-    print(f"it's a tensor of {the_type}, every entry takes {bit_per_entry} bit")
-    start = time.time()
+    if debug:
+        print(f"it's a tensor of {the_type}, every entry takes {bit_per_entry} bit")
+    a = time.time()
     
     if debug:
         print("doing quantlization...")
@@ -58,12 +59,14 @@ def cal_ratio(pt_path,
                               scaling=scaling,
                               fp64_enable=True,
                               debug=False) # torch.Tensor
+    b = time.time()
+    
     if debug:
         print("preprocessing...")
     signed_index = preprocess(pt_path = None,
                               pt_array=quantized) # torch.Tensor
     
-    
+    c = time.time()
     if debug:
         print(signed_index)
         print(signed_index.dtype)
@@ -71,15 +74,17 @@ def cal_ratio(pt_path,
         print("encoding...")
     codes = EG.encode(signed_index,debug = debug) # -> list[str]
     
-    end = time.time()
+    d = time.time()
     
     #### calculating all infos ####
     name = os.path.basename(pt_path)
     compressed_bit_size = sum(len(code) for code in codes)
     original_bit_theory = len(codes) * bit_per_entry  
     avg_bit_per_entry = compressed_bit_size/len(codes)
-    time_used = end - start
-    
+    time_quantlization = b - a
+    time_val2index = c - b
+    time_encoding = d - c
+    time_used = time_quantlization + time_val2index + time_encoding
     return {
         "name" : name,
         
@@ -88,6 +93,12 @@ def cal_ratio(pt_path,
         "original_bit_theory" : original_bit_theory,
         
         "avg_bit_per_entry" : avg_bit_per_entry,
+        
+        "time_quantlization": time_quantlization,
+        
+        "time_val2index": time_val2index,
+        
+        "time_encoding": time_encoding,
         
         "time_used" :time_used
     }
@@ -120,4 +131,4 @@ def local_test(MODE):
         print(codes)
 
 
-local_test(MODE=0)
+# local_test(MODE=0)

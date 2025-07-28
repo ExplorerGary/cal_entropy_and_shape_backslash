@@ -47,12 +47,15 @@ def main(scale = int(1e6)):
         suffix  = f"e_scaling_{scale}"
         
     cache_file = os.path.join(output_path, f"zzz_avail_pt_{suffix}.csv")
-    results_file = os.path.join(output_path,f"001_ENTROPY_RESULTS_PROCESSPOOL_{suffix}.csv")
+    results_file = os.path.join(output_path,f"003_SIZE_RESULTS_PROCESSPOOL_{suffix}.csv")
     
     fieldnames = ["name", 
                   "compressed_bit_size",
                   "original_bit_theory",
                   "avg_bit_per_entry",
+                  "time_quantlization",
+                  "time_val2index",
+                  "time_encoding",
                   "time_used",]
 
     
@@ -128,21 +131,21 @@ def main(scale = int(1e6)):
 if __name__ == "__main__":
     result_file_b = main(scale = int(1e6))
     if result_file_b:
-        print(f"\n[001b] PURE_DATA ENABLED:\nCheck results in {result_file_b}")
+        print(f"\n[003b] PURE_DATA ENABLED:\nCheck results in {result_file_b}")
     else:
-        print("[001]Failed — check logs.")
+        print("[003]Failed — check logs.")
 
     result_file_c = main(scale = int(1e5))
     if result_file_c:
-        print(f"\n[001c] PURE_DATA ENABLED:\nCheck results in {result_file_c}")
+        print(f"\n[003c] PURE_DATA ENABLED:\nCheck results in {result_file_c}")
     else:
-        print("[001]Failed — check logs.")
+        print("[003]Failed — check logs.")
     
     result_file_d = main(scale = int(1e4))
     if result_file_d:
-        print(f"\n[001c] PURE_DATA ENABLED:\nCheck results in {result_file_d}")
+        print(f"\n[003c] PURE_DATA ENABLED:\nCheck results in {result_file_d}")
     else:
-        print("[001]Failed — check logs.")
+        print("[003]Failed — check logs.")
 
 
 
