@@ -18,78 +18,6 @@ except:
 from utilities.utilities import read_pt_from_csv,scan_pt
 from utilities.ErrorLogger import ErrorLogger 
 
-
-
-
-# def main():
-#     base_dir = os.path.dirname(__file__)
-#     output_path = os.path.join(base_dir,"data_obtained")
-#     os.makedirs(output_path, exist_ok=True)  # Ensure output directory exists
-#     BASE_DIR = "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/"
-#     Logger = ErrorLogger()
-
-#     print("total cpu:", multiprocessing.cpu_count())
-#     max_workers=max(4,multiprocessing.cpu_count()-2)
-#     print(f"working on: {max_workers}")
-#     if not torch.cuda.is_available():
-#         print("local test")
-#     else:
-#         print("running on hpc")
-        
-#     # Cache file paths
-#     CACHE_FILE = os.path.join(output_path, "zzz_avail_pt.csv")
-#     RESULTS_FILE = "005_ENTROPY_RESULTS_PROCESSPOOL.csv"
-#     fieldnames = ["name", "entropy"]  # Fixed typo in "entorpy"
-
-#     avail_pt = read_pt_from_csv(BASE_DIR)
-#     print(f"{len(avail_pt)} to process...")
-    
-#     # cache the avail_pt to os.path.join(output_path,"zzz.csv")
-#     cache_file = os.path.join(output_path, "zzz_avail_pt.csv")
-
-#     # 将文件列表缓存到 CSV（如果列表非空）
-#     if avail_pt:
-#         try:
-#             # 建议使用 pandas 保存 CSV（更规范）
-#             import pandas as pd
-#             pd.DataFrame({"name": avail_pt}).to_csv(cache_file, index=False)
-#             print(f"File list cached to: {cache_file}")
-#         except Exception as e:
-#             print(f"Failed to cache file list: {str(e)}")
-#     else:
-#         print("Warning: No .pt files found to cache!")
-    
-#     csv_path ="005_ENTROPY_RESULTS_PROCESSPOOL.csv"
-#     fieldnames = ["name", "entorpy"]
-
-#     chunk_size = int(5e2) # 分块，防止内存崩溃
-    
-    
-#     # ✅ 修复缩进问题
-#     with open(csv_path, mode='w', newline='', encoding='utf-8') as csvfile:
-#         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-#         writer.writeheader()
-#         for i in tqdm(range(0, len(avail_pt), chunk_size), desc="Batch Processing"):
-#             batch = avail_pt[i:i+chunk_size]
-#             with ProcessPoolExecutor(max_workers=max_workers) as executor:
-#                 futures = [executor.submit(cal_entropy, os.path.join(BASE_DIR,path)) for path in batch]
-
-#                 for future in tqdm(as_completed(futures), total=len(futures)):
-#                     try:
-#                         ans = future.result()
-#                         writer.writerow(ans)
-#                         csvfile.flush()
-        
-#                     except Exception as e:
-#                         print(f"[Error] One task failed: {e}")
-#                         Logger.record(e)
-
-#     return csv_path
-# if __name__ == "__main__":
-#     csv_path = main()
-#     print(f"ALL FILE PRPROCESSED, CHECK\n{csv_path}\nTO SEE THE RESULT")
-    
-
 def main(pure_data_enable=True, abs_enabled = False, scale = int(1e6)):
     info = f'''
 pure data enabled? -- {pure_data_enable}
@@ -115,11 +43,11 @@ scale -- {scale}
     if pure_data_enable:
         suffix = "a1" if not abs_enabled else "a2"
     elif int(scale) == int(1e6):
-        suffix = "b" if not abs_enabled else "b2"
+        suffix = "b1" if not abs_enabled else "b2"
     elif int(scale) == int(1e5):
-        suffix = "c" if not abs_enabled else "c2"
+        suffix = "c1" if not abs_enabled else "c2"
     else:
-        suffix = "d" if not abs_enabled else "d2"
+        suffix = "d1" if not abs_enabled else "d2"
     cache_file = os.path.join(output_path, f"zzz_avail_pt_{suffix}.csv")
     results_file = os.path.join(output_path,f"001_ENTROPY_RESULTS_PROCESSPOOL_{suffix}.csv")
     fieldnames = ["name", "entropy"]
@@ -195,107 +123,56 @@ scale -- {scale}
 
 
 if __name__ == "__main__":
-    result_file_a = main(pure_data_enable=True, abs_enabled=True)
-    if result_file_a:
-        print(f"\n[001a] PURE_DATA ENABLED:\nCheck results in {result_file_a}")
+    result_file_a1 = main(pure_data_enable=True, abs_enabled=False)
+    if result_file_a1:
+        print(f"\n[001a1] PURE_DATA ENABLED:\nCheck results in {result_file_a}")
     else:
-        print("[001a] Failed — check logs.")
+        print("[001a1] Failed — check logs.")
 
-    result_file_b = main(pure_data_enable=False,abs_enabled=True)
-    if result_file_b:
-        print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_b}")
+    result_file_b1 = main(pure_data_enable=False,abs_enabled=False)
+    if result_file_b1:
+        print(f"\n[001b1] PURE_DATA DISABLED:\nCheck results in {result_file_b}")
     else:
-        print("[001b] Failed — check logs.")
-        
-    result_file_c = main(pure_data_enable=False,abs_enabled=True, scale = int(1e4))
-    if result_file_c:
-        print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_c}")
+        print("[001b1] Failed — check logs.")
+
+    result_file_c1 = main(pure_data_enable=False,abs_enabled=False, scale = int(1e5))
+    if result_file_c1:
+        print(f"\n[001c1] PURE_DATA DISABLED:\nCheck results in {result_file_d}")
     else:
-        print("[001b] Failed — check logs.")
-        
-    result_file_d = main(pure_data_enable=False,abs_enabled=True, scale = int(1e5))
-    if result_file_d:
-        print(f"\n[001b] PURE_DATA DISABLED:\nCheck results in {result_file_d}")
+        print("[001c1] Failed — check logs.")
+    
+    result_file_d1 = main(pure_data_enable=False,abs_enabled=False, scale = int(1e4))
+    if result_file_d1:
+        print(f"\n[001d1] PURE_DATA DISABLED:\nCheck results in {result_file_c}")
     else:
-        print("[001b] Failed — check logs.")
-
-
-# # run
-# import os
-# import torch
-# import numpy as np
-# from concurrent.futures import ProcessPoolExecutor, as_completed
-# import csv
-# from tqdm import tqdm
-# import multiprocessing
-# import traceback
-
-# from cal_ratio import cal_ratio
-# from utilities import scan_pt
-# from ErrorLogger import ErrorLogger 
-
-
-
-# def main():
-#     Logger = ErrorLogger()
-
-#     print("total cpu:", multiprocessing.cpu_count())
-#     max_workers=max(4,multiprocessing.cpu_count()-2)
-#     print(f"working on: {max_workers}")
-#     if not torch.cuda.is_available():
-#         print("local test")
-#     else:
-#         print("running on hpc")
+        print("[001d1] Failed — check logs.")
         
-#     # base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files" if (not torch.cuda.is_available) else "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/"
-#     base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files" if (not torch.cuda.is_available()) else "/gpfsnyu/scratch/zg2598/Qwen/OUT/COMMUNICATION_LOG/"
-#     print(f"working on: {base_dir}")
-#     avail_pt = scan_pt(base_dir=base_dir)
-    
-#     print(f"{len(avail_pt)} files found...")
-
-#     scale = 1e6
-#     print(f"scale: {scale}")
-    
-#     csv_path = os.path.join(base_dir, "004_COMPRESSION_RESULTS_PROCESSPOOL.csv")
-#     fieldnames = ["name", "byte_theory", "byte_os", "byte_encoded", "ratio_theory", "ratio_os"]
-
-#     chunk_size = 1e3 # 分块，防止内存崩溃
-    
-    
-#     # ✅ 修复缩进问题
-#     with open(csv_path, mode='w', newline='', encoding='utf-8') as csvfile:
-#         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-#         writer.writeheader()
-#         for i in tqdm(range(0, len(avail_pt), chunk_size), desc="Batch Processing"):
-#             batch = avail_pt[i:i+chunk_size]
-#             with ProcessPoolExecutor(max_workers=max_workers) as executor:
-#                 k = 0 # 或者你可以根据需要设置k的值
-#                 futures = [executor.submit(cal_ratio, path, k, scale) for path in batch]
-
-#                 for future in tqdm(as_completed(futures), total=len(futures)):
-#                     try:
-#                         ans = future.result()
-#                         writer.writerow(ans)
-#                         csvfile.flush()
+    ### abs enabled : ##############
         
-#                     except Exception as e:
-#                         print(f"[Error] One task failed: {e}")
-#                         Logger.record(e)
+    # result_file_a2 = main(pure_data_enable=True, abs_enabled=True)
+    # if result_file_a2:
+    #     print(f"\n[001a2] PURE_DATA ENABLED:\nCheck results in {result_file_a}")
+    # else:
+    #     print("[001a2] Failed — check logs.")
 
-#     return csv_path
-# if __name__ == "__main__":
-#     csv_path = main()
-#     print(f"ALL FILE PRPROCESSED, CHECK\n{csv_path}\nTO SEE THE RESULT")
+    # result_file_b2 = main(pure_data_enable=False,abs_enabled=True)
+    # if result_file_b2:
+    #     print(f"\n[001b2] PURE_DATA DISABLED:\nCheck results in {result_file_b}")
+    # else:
+    #     print("[001b2] Failed — check logs.")
+        
+    # result_file_c2 = main(pure_data_enable=False,abs_enabled=True, scale = int(1e5))
+    # if result_file_c2:
+    #     print(f"\n[00c2] PURE_DATA DISABLED:\nCheck results in {result_file_d}")
+    # else:
+    #     print("[001c2] Failed — check logs.")
+        
+    # result_file_d2 = main(pure_data_enable=False,abs_enabled=True, scale = int(1e4))
+    # if result_file_d2:
+    #     print(f"\n[001d2] PURE_DATA DISABLED:\nCheck results in {result_file_c}")
+    # else:
+    #     print("[001d2] Failed — check logs.")
+        
 
 
 
-
-# if not torch.cuda.is_available():
-#     print("local test")
-# else:
-#     print("running on hpc")
-    
-# BASE_DIR = "" if torch.cuda.is_available() else ""
-# avail_pt = scan_pt(BASE_DIR)
-# print(f"{len(avail_pt)} files found...")
