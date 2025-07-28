@@ -13,7 +13,7 @@ except:
     from EG_encoding import ExpGolombEncoding
     from EG_preprocess_deprocess import preprocess,deprocess 
 
-EG = ExpGolombEncoding()
+
 bit_per_entry_dict = {
     torch.float64: 64,  # 双精度浮点数 (double)
     torch.float32: 32,  # 单精度浮点数 (float)
@@ -45,6 +45,7 @@ def cal_ratio(pt_path,
         平均码长: avg_bit_per_entry
         用时: time_used
     '''
+    EG = ExpGolombEncoding(k=0)
     pt_array:torch.Tensor = read_pt_tensor(pt_path=pt_path)
     the_type = pt_array.dtype
     bit_per_entry = bit_per_entry_dict[the_type]
@@ -92,23 +93,31 @@ def cal_ratio(pt_path,
     }
     
     
+
     
-    
-def local_test():
-    base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files\\"
-    avail_pt = scan_pt(base_dir=base_dir)
-    for pt_path in avail_pt:
-        print("calculating...")
-        ans = cal_ratio(pt_path,
-                        scaling=int(1e6),
-                        debug = True)
-        for key,value in ans.items():
-            print(f"""[INFO]
-{key}\t\t\t\t{value}
-                  """)
-        
-        print()
+def local_test(MODE):
+    if MODE == 0:
+        base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files\\"
+        avail_pt = scan_pt(base_dir=base_dir)
+        for pt_path in avail_pt:
+            print("calculating...")
+            ans = cal_ratio(pt_path,
+                            scaling=int(1e6),
+                            debug = True)
+            for key,value in ans.items():
+                print(f"""[INFO]
+    {key}\t\t\t\t{value}
+                    """)
+            
+            print()
+    else:                                                  
+        the_tensor = torch.randint(low=0, high=1001, size=(67895296,), dtype=torch.int32)
+        print(the_tensor)
+        EG = ExpGolombEncoding()
+        codes = EG.encode(nums=the_tensor,
+                  debug=True)
+
+        print(codes)
 
 
-
-local_test()
+local_test(MODE=0)

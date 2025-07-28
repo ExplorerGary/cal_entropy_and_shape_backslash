@@ -13,22 +13,16 @@ class ExpGolombEncoding(EGCode):
     def __init__(self, k=0):
         super().__init__(k)
     
-    def encode(self, nums, debug:bool = False):
+    def encode(self, nums, debug:bool = False):  # 改进为tolist实现，但是还是有进一步提升的空间
         codes = [None] * len(nums)
-        if debug:
-            for i, num in enumerate(tqdm(nums, desc="Processing")):
-                # 加入signbit逻辑：
-                sign_bit = "0" if num>=0 else "1"
-                num = abs(num)
-                code = num + (1 << self.k)
-                codes[i] = '0' * (int(code).bit_length() - self.k - 1) + bin(code)[2:] + sign_bit
-        else:
-            for i, num in enumerate(nums):
-                # 加入signbit逻辑：
-                sign_bit = "0" if num>=0 else "1"
-                num = abs(num)
-                code = num + (1 << self.k)
-                codes[i] = '0' * (int(code).bit_length() - self.k - 1) + bin(code)[2:] + sign_bit            
+        nums = nums.tolist() if isinstance(nums, torch.Tensor) else nums
+        iterator = tqdm(nums, desc="Processing") if debug else nums
+        for i, num in enumerate(iterator):
+            sign_bit = "0" if num >=0 else "1"
+            num = abs(num)
+            code = num + (1 << self.k)
+            codes[i] = '0' * (int(code).bit_length() - self.k - 1) + bin(code)[2:] + sign_bit            
+         
         return codes
 
     
