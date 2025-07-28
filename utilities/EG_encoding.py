@@ -7,7 +7,7 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
-
+from bitarray import bitarray
 
 class ExpGolombEncoding(EGCode):
     def __init__(self, k=0):
@@ -25,7 +25,25 @@ class ExpGolombEncoding(EGCode):
             codes[i] = '0' * (int(code).bit_length() - self.k - 1) + bin(code)[2:] + sign_bit            
          
         return codes
+    
+    def encode_bitarray(self, nums: torch.Tensor) -> bitarray:
+        if not torch.is_tensor(nums):
+            nums = torch.tensor(nums)
 
+        signs = (nums >= 0).int()
+        abs_vals = torch.abs(nums)
+        codes = bitarray(endian='big')
+
+        for val, sign in zip(abs_vals.tolist(), signs.tolist()):
+            code = val + (1 << self.k)
+            prefix_len = int(code).bit_length() - self.k - 1
+            prefix = '0' * prefix_len
+            body = bin(code)[2:]
+            codes.extend(prefix + body + str(1 - sign))  # 正→0，负→1，和你原版一致
+
+        return codes
+
+        
     
     def streamEncode(self, nums):
         return super().streamEncode(nums=nums)
@@ -101,3 +119,64 @@ def test():
 
 
 # test()    
+
+def local_test():
+    from bitarray.util import ba2int
+    from tqdm import tqdm
+
+    # === 构造数据 ===
+    def generate_random_tensor(length=60_000_000, max_val=104000):
+        return torch.randint(low=0, high=max_val + 1, size=(length,), dtype=torch.int32)
+
+    # 用法示例：
+    test_data = generate_random_tensor()
+    print(f"✅ Total elements: {len(test_data)}")
+
+    # === 初始化编码器 ===
+    EG = ExpGolombEncoding(k=0)
+
+    # # === 原始字符串编码 ===
+    # print("\n📦 Encoding with string version...")
+    # codes_str = []
+    # for num in tqdm(test_data.tolist(), desc="String Encoding"):
+    #     sign_bit = "0" if num >= 0 else "1"
+    #     val = abs(num)
+    #     code = val + (1 << EG.k)
+    #     prefix = '0' * (code.bit_length() - EG.k - 1)
+    #     body = bin(code)[2:]
+    #     codes_str.append(prefix + body + sign_bit)
+    # concat_str = ''.join(codes_str)
+
+    # === bitarray 编码 ===
+    print("\n📦 Encoding with bitarray version...")
+    import time
+    start = time.time()
+    codes_bitarray = EG.encode_bitarray(test_data)
+    end = time.time()
+    concat_bitstr = codes_bitarray.to01()
+    print(f"📦 Bitarray version takes {end-start} seconds")
+    # # === 比较结果 ===
+    # print("\n🔍 Comparing outputs...")
+    # if concat_str == concat_bitstr:
+    #     print(f"✅ 完全一致！总长度：{len(concat_str)} bits")
+    # else:
+    #     print(f"❌ 不一致！长度差异：str={len(concat_str)} vs bitarray={len(concat_bitstr)}")
+    #     # 找到第一个不同的位置
+    #     for i, (s, b) in enumerate(zip(concat_str, concat_bitstr)):
+    #         if s != b:
+    #             print(f"Mismatch at bit {i}: str={s} vs bitarray={b}")
+    #             break
+
+
+
+def split_bitarray_str(bit_str, ref_codes):
+    """辅助函数：根据参考编码长度，对bitarray拼接字符串切片"""
+    res = []
+    idx = 0
+    for code in ref_codes:
+        res.append(bit_str[idx:idx + len(code)])
+        idx += len(code)
+    return res
+
+
+local_test()

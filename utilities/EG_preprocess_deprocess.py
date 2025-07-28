@@ -15,15 +15,10 @@ import os
 
 base_dir = os.path.dirname(__file__)
 table_path = os.path.join(base_dir, "..", "data_to_use", "ggd_index_table.pt")  # table存储的位置
-table = torch.load(table_path, map_location="cpu")
-
-index2value = table["index2value"].to("cpu") # it's a dict.
-boundaries = table["boundaries"].to("cpu")
-print("table loaded...")
 
 
-
-
+_boundaries = None
+_index2value = None
 def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
     '''
     读入一个原始的tensor
@@ -32,7 +27,10 @@ def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
         返回带符号的index供改修过了的EG encoding使用
     
     '''
-    global boundaries
+    global _boundaries
+    if _boundaries is None:
+        table = torch.load(table_path,map_location="cpu")
+        _boundaries = table["boundaries"].to("cpu")
     
     if pt_array is None:
         try:
@@ -42,7 +40,7 @@ def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
         
     
     sign = torch.sign(pt_array).to(torch.int8) # get the sign   
-    index = torch.bucketize(pt_array, boundaries, right=False)
+    index = torch.bucketize(pt_array, _boundaries, right=False)
     
     signed_index = sign * index
     
@@ -66,7 +64,7 @@ def deprocess(pt_path:str = None,pt_array:torch.tensor = None):
     
     sign = torch.sign(pt_array).to(torch.int8) # get the sign 
     index = torch.abs(pt_array)
-    data = index2value[index] * sign
+    data = _index2value[index] * sign
     
     return data
 
