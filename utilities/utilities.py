@@ -43,6 +43,21 @@ def read_pt(pt_path) -> np.ndarray:
         pt_array = pt.flatten()
     return pt_array
 
+def read_pt_tensor(pt_path) -> torch.Tensor:
+    '''
+    返回 array ，等待使用 EG 编码。
+        如果 pt 是 dict，则集体展平成一个一维 torch.Tensor 叫做pt_array。然后返回。
+    '''
+    pt = torch.load(pt_path, map_location="cpu")
+    if isinstance(pt, dict):
+        tensors = []
+        for v in pt.values():
+            tensors.append(v.flatten())
+        # print(f"array:{len(arrays)}")
+        pt_array = torch.cat(tensors)
+    else:
+        pt_array = pt.flatten()
+    return pt_array
 
 def to_int_fuct(pt: np.ndarray, scale: float = 1e8) -> np.ndarray:
     """

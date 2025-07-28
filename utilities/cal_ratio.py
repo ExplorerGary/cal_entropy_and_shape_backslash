@@ -5,11 +5,11 @@ import numpy as np
 import torch
 import time
 try:
-    from .utilities import read_pt,to_int,quantlization_pt
+    from .utilities import read_pt_tensor,to_int,quantlization_pt,scan_pt
     from .EG_preprocess_deprocess import preprocess,deprocess
     from .EG_encoding import ExpGolombEncoding
 except:
-    from utilities import read_pt,to_int,quantlization_pt
+    from utilities import read_pt_tensor,to_int,quantlization_pt,scan_pt
     from EG_encoding import ExpGolombEncoding
     from EG_preprocess_deprocess import preprocess,deprocess 
 
@@ -32,6 +32,7 @@ bit_per_entry_dict = {
 
 def cal_ratio(pt_path,
               scaling:float= int(1e6),
+              debug:bool = False
               ):
     '''
     1. 从pt_path读入一个.pt文件
@@ -44,22 +45,26 @@ def cal_ratio(pt_path,
         平均码长: avg_bit_per_entry
         用时: time_used
     '''
-    pt_array:torch.Tensor = torch.load(pt_path,map_location="cpu")
+    pt_array:torch.Tensor = read_pt_tensor(pt_path=pt_path)
     the_type = pt_array.dtype
     bit_per_entry = bit_per_entry_dict[the_type]
     print(f"it's a tensor of {the_type}, every entry takes {bit_per_entry} bit")
     start = time.time()
     
+    if debug:
+        print("doing quantlization...")
     quantized = quantlization_pt(pt_array=pt_array,
                               scaling=scaling,
                               fp64_enable=True,
                               debug=False) # torch.Tensor
-    
+    if debug:
+        print("preprocessing...")
     signed_index = preprocess(pt_path = None,
                               pt_array=quantized) # torch.Tensor
     
-    
-    codes = EG.encode(signed_index) # -> list[str]
+    if debug:
+        print("encoding...")
+    codes = EG.encode(signed_index,debug = debug) # -> list[str]
     
     end = time.time()
     
@@ -85,3 +90,21 @@ def cal_ratio(pt_path,
     
     
     
+def local_test():
+    base_dir = "D:\\NYU_Files\\2025 SPRING\\Summer_Research\\新\\PYTHON\\QWEN\\dummy_files\\"
+    avail_pt = scan_pt(base_dir=base_dir)
+    for pt_path in avail_pt:
+        print("calculating...")
+        ans = cal_ratio(pt_path,
+                        scaling=int(1e6),
+                        debug = True)
+        for key,value in ans.items():
+            print(f"""[INFO]
+{key}\t\t\t\t{value}
+                  """)
+        
+        print()
+
+
+
+local_test()

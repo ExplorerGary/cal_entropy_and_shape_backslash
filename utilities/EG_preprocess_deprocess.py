@@ -31,7 +31,7 @@ def preprocess(pt_path:str = None,pt_array:torch.Tensor = None):
     '''
     
     
-    if not pt_array:
+    if pt_array is None:
         try:
             pt_array = torch.load(pt_path,map_location="cpu")
         except:
