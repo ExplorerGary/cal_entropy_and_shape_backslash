@@ -61,7 +61,7 @@ def main(scale = int(1e6)):
 
     
     
-    chunk_size = 50
+    chunk_size = 250
 
     processed_files = set()
     if os.path.exists(results_file):
